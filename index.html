@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+
+            <input type="file" id="files" name="files[]"/>
+            <output id="list"></output>
+            <button type="button" onclick="sendData()">Click Me!</button>
+
+            <script>
+                    
+                    //This is the variable that will hold the base64-encoded poster
+                    var encoded = "";
+
+                    //Function that handles the file upload
+                    function handleFileSelect(evt) {
+                        var file = evt.target.files[0]; // FileList object
+
+                        console.log(file);
+
+                        // Only process image files.
+                        //if (!files.type.match('image.*')) {
+                        //    continue;
+                        //}
+
+                        var reader = new FileReader();
+
+                        // Closure to capture the file information.
+                        reader.onload = (function(theFile) {
+                            return function(e) {
+                            // Render thumbnail.
+                            var span = document.createElement('span');
+                            span.innerHTML = ['<img class="thumb" src="', e.target.result,
+                                                '" title="', escape(theFile.name), '"/>'].join('');
+                            document.getElementById('list').insertBefore(span, null);
+                            };
+                        })(file);
+
+                        reader.addEventListener("load", function () {
+                            var result = reader.result.split(",");
+                            encoded = result[1];
+                        }, false);
+
+                        // Read in the image file as a data URL.
+                        reader.readAsDataURL(file);
+                        
+                    }
+
+                    //Function that makes the post request
+                    function sendData() {
+                        var XHR = new XMLHttpRequest();
+                        var FD  = new FormData();
+
+                        // Push our data into our FormData object
+                        FD.append('encoded', encoded);
+                        
+                        // Define what happens on successful data submission
+                        XHR.addEventListener('load', function(event) {
+                            alert('Yeah! Data sent and response loaded.');
+                        });
+
+                        // Define what happens in case of error
+                        XHR.addEventListener('error', function(event) {
+                            alert('Oups! Something went wrong.');
+                        });
+
+                        // Set up our request
+                        XHR.open('POST', 'http://localhost:8081/detectText');
+
+                        // Send our FormData object; HTTP headers are set automatically
+                        XHR.send(FD);
+                    }
+
+                    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+            </script>
+  </body>
+</html>  
